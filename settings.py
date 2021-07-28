@@ -1,10 +1,16 @@
 class Settings:
     """A class to store the game's various settings."""
 
-    def __init__(self):
-        """Initialize the game's settings."""
+    def __init__(self, screen):
+        """Initialize the game's settings. Screen determines
+           the resolution of the game based on screentype."""
         
-        # screen settings
-        self.screen_width = 1200
-        self.scren_height = 800
+        # determine multiplier
+        if screen == 'MacBook Pro':
+            multiplier = 0.75
+        elif screen == 'AOC':
+            multiplier = 1.0
+
+        self.screen_width = int(1200 * multiplier)
+        self.scren_height = int(800 * multiplier)
         self.bg_color = (230, 230, 230)
