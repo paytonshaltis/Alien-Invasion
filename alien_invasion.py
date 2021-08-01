@@ -1,10 +1,12 @@
-from os import CLD_TRAPPED
+# importing external packages / modules
 import sys
-import pygame, pygame.display, pygame.event
+import pygame, pygame.display, pygame.event, pygame.sprite
 from pygame.locals import *
 
+# importing my own modules from this project
 from settings import Settings
 from ship import Ship
+from bullet import Bullet
 
 class AlienInvasion:
     """Overall class that will manage game behavior."""
@@ -24,11 +26,16 @@ class AlienInvasion:
         # create a ship attribute for this game instance
         self.ship = Ship(self)
 
+        # create a Group of live Bullet objects (from Sprite)
+        self.bullets = pygame.sprite.Group()
+
 
     def run_game(self):
         """Starts the main game loop."""
         while True:
             self._check_events()
+            self.ship.update()
+            self.bullets.update()
             self._update_screen()
 
 
@@ -53,6 +60,8 @@ class AlienInvasion:
             self.ship.moving_right = True
         elif event.key == K_LEFT:
             self.ship.moving_left = True
+        elif event.key == K_SPACE:
+            self._fire_bullet()
         elif event.key == K_q:
             sys.exit()
 
@@ -63,13 +72,18 @@ class AlienInvasion:
         elif event.key == K_LEFT:
             self.ship.moving_left = False
 
+    def _fire_bullet(self):
+        """Create a new Bullet and add it to the 'bullets' list."""
+        new_bullet = Bullet(self)
+        self.bullets.add(new_bullet)
+
 
     def _update_screen(self):
         """Update images on the screen, and flip to the new screen"""
         self.screen.fill(self.settings.bg_color)
-        self.ship.update()
         self.ship.blitme()
-
+        for bullet in self.bullets.sprites():
+            bullet.draw_bullet()
         pygame.display.flip()
 
 
