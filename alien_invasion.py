@@ -119,19 +119,53 @@ class AlienInvasion:
         alien.rect.y = alien_height + 2 * alien.rect.height * row_number
         self.aliens.add(alien)
 
+    def _check_fleet_edges(self):
+        """Respond appropriately if any aliens have reached an edge"""
+        for alien in self.aliens.sprites():
+            if alien.check_edges():
+                self._change_fleet_direction()
+                break
+    
+    def _change_fleet_direction(self):
+        """Drop the entire fleet and change the fleet's direction."""
+        for alien in self.aliens.sprites():
+            alien.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
+
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
-        # update the position of all bullets
+        # update the position of all Bullets
         self.bullets.update()
 
-        # get rid of bullets that have disappeared
+        # get rid of Bullets that have disappeared
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
+        self._check_bullet_alien_collisions()
+
+    def _check_bullet_alien_collisions(self):
+        """Respond to Bullet-Alien collisions."""
+        # upon collision, get rid of the Bullet and the Alien
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+
+        if not self.aliens:
+            # destroy existing Bullets and create a new fleet
+            self.bullets.empty()
+            self._create_fleet()
+
+
     def _update_aliens(self):
-        """Update the posisitions of all Aliens in the fleet."""
+        """
+        Check if the fleet is at an edge,
+        then update the positions of all aliens in the fleet.
+        """
+        self._check_fleet_edges()
         self.aliens.update()
+
+        # look for Alien-Ship collisions
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            print('Ship Hit!!!')
 
     def _update_screen(self):
         """Update images on the screen, and flip to the new screen"""
@@ -144,5 +178,5 @@ class AlienInvasion:
 
 
 if __name__ == '__main__':
-    game = AlienInvasion(screen='AOC', full_screen=False)
+    game = AlienInvasion(screen='AOC', full_screen=True)
     game.run_game()

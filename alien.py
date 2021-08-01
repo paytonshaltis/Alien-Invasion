@@ -20,7 +20,14 @@ class Alien(pygame.sprite.Sprite):
         # store the Alien's exact horizontal position
         self.x = float(self.rect.x)
 
+    def check_edges(self):
+        """Return True if Alien is at edge of screen."""
+        screen_rect = self.screen.get_rect()
+        if self.rect.right >= screen_rect.right or self.rect.left <= 0:
+            return True
+
     def update(self):
-        """Move the Alien to the right."""
-        self.x += self.settings.alien_speed
+        """Move the Alien right or left."""
+        self.x += (self.settings.alien_speed * 
+                    self.settings.fleet_direction)
         self.rect.x = self.x
