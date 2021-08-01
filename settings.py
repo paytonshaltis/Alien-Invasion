@@ -12,7 +12,7 @@ class Settings:
             multiplier = 1.0
 
         self.screen_width = int(1200 * multiplier)
-        self.scren_height = int(800 * multiplier)
+        self.screen_height = int(800 * multiplier)
         self.bg_color = (230, 230, 230)
 
         # Ship settings
@@ -24,3 +24,6 @@ class Settings:
         self.bullet_height = 15
         self.bullet_color = (60, 60, 60)
         self.bullets_allowed = 3
+
+        # Alien settings
+        self.alien_speed = 1.0

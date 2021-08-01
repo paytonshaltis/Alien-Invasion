@@ -7,27 +7,39 @@ from pygame.locals import *
 from settings import Settings
 from ship import Ship
 from bullet import Bullet
+from alien import Alien
 
 class AlienInvasion:
     """Overall class that will manage game behavior."""
 
-    def __init__(self, screen):
+    def __init__(self, screen, full_screen=False):
         """Initialize the game and create needed resources."""
         pygame.init()
         
         # create a settings attribute for this game instance
         self.settings = Settings(screen)
 
+        # if the game is to be played in fullscreen mode
+        if full_screen:
+            self.screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+            self.settings.screen_width = self.screen.get_rect().width
+            self.settings.screen_height = self.screen.get_rect().height
+        
         # set the screen dimensions and caption (this is a surface)
-        self.screen = pygame.display.set_mode(
-            (self.settings.screen_width, self.settings.scren_height))
-        pygame.display.set_caption('Alien Invasion')
+        else:
+            self.screen = pygame.display.set_mode(
+                (self.settings.screen_width, self.settings.screen_height))
+            pygame.display.set_caption('Alien Invasion')
 
         # create a ship attribute for this game instance
         self.ship = Ship(self)
 
         # create a Group of live Bullet objects (from Sprite)
         self.bullets = pygame.sprite.Group()
+
+        # create a Group of live Alien objects (from Sprite)
+        self.aliens = pygame.sprite.Group()
+        self._create_fleet()
 
 
     def run_game(self):
@@ -36,6 +48,7 @@ class AlienInvasion:
             self._check_events()
             self.ship.update()
             self._update_bullets()
+            self._update_aliens()
             self._update_screen()
 
 
@@ -78,6 +91,34 @@ class AlienInvasion:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
+    def _create_fleet(self):
+        """Create the fleet of aliens."""
+        # create an Alien and find the number of Aliens in a row
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        available_space_x = self.settings.screen_width - (2 * alien_width)
+        number_aliens_x = int(available_space_x / (2 * alien_width))
+
+        # determine the number of rows of Aliens that fit on the scree
+        ship_height = self.ship.rect.height
+        available_space_y = (self.settings.screen_height - 
+                                (3 * alien_height) - ship_height)
+        number_rows = int(available_space_y / (2 * alien_height))
+
+        # create the full fleet of Aliens
+        for row_number in range(number_rows):    
+            for alien_number in range(number_aliens_x):
+                self._create_alien(alien_number, row_number)
+
+    def _create_alien(self, alien_number, row_number):
+        """Create an Alien and place it in the row."""
+        alien = Alien(self)
+        alien_width, alien_height = alien.rect.size
+        alien.x = alien_width + 2 * alien_width * alien_number
+        alien.rect.x = alien.x
+        alien.rect.y = alien_height + 2 * alien.rect.height * row_number
+        self.aliens.add(alien)
+
     def _update_bullets(self):
         """Update position of bullets and get rid of old bullets."""
         # update the position of all bullets
@@ -88,6 +129,9 @@ class AlienInvasion:
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
+    def _update_aliens(self):
+        """Update the posisitions of all Aliens in the fleet."""
+        self.aliens.update()
 
     def _update_screen(self):
         """Update images on the screen, and flip to the new screen"""
@@ -95,9 +139,10 @@ class AlienInvasion:
         self.ship.blitme()
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+        self.aliens.draw(self.screen)
         pygame.display.flip()
 
 
 if __name__ == '__main__':
-    game = AlienInvasion('AOC')
+    game = AlienInvasion(screen='AOC', full_screen=False)
     game.run_game()
