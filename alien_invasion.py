@@ -1,6 +1,7 @@
 # importing external packages / modules
 import sys
 from time import sleep
+import json
 import pygame, pygame.display, pygame.event, pygame.sprite, pygame.mouse
 from pygame.locals import *
 
@@ -11,6 +12,7 @@ from bullet import Bullet
 from alien import Alien
 from game_stats import GameStats
 from button import Button
+from scoreboard import Scoreboard
 
 class AlienInvasion:
     """Overall class that will manage game behavior."""
@@ -34,8 +36,10 @@ class AlienInvasion:
                 (self.settings.screen_width, self.settings.screen_height))
             pygame.display.set_caption('Alien Invasion')
 
-        # create an instance to store game statistics
+        # create an instance to store game statistics,
+        # and create a scoreboard
         self.stats = GameStats(self)
+        self.sb = Scoreboard(self)
 
         # create a ship attribute for this game instance
         self.ship = Ship(self)
@@ -70,6 +74,7 @@ class AlienInvasion:
 
             # closing the window quits the game
             if event.type == QUIT:
+                self.stats.save_high_score()
                 sys.exit()
 
             # check certain event pased on event.type
@@ -90,8 +95,8 @@ class AlienInvasion:
         elif event.key == K_SPACE:
             self._fire_bullet()
         elif event.key == K_q:
+            self.stats.save_high_score()
             sys.exit()
-
 
     def _check_keyup_events(self, event):
         if event.key == K_RIGHT:
@@ -109,6 +114,7 @@ class AlienInvasion:
             # reset the game statistics
             self.stats.reset_stats()
             self.stats.game_active = True
+            self.sb.prep_score()
 
             # get rid of any remaining Aliens and Bullets
             self.aliens.empty()
@@ -183,7 +189,14 @@ class AlienInvasion:
     def _check_bullet_alien_collisions(self):
         """Respond to Bullet-Alien collisions."""
         # upon collision, get rid of the Bullet and the Alien
-        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, False, True)
+
+        # each key (single Bullet Sprite) is associated with a value (LIST of Alien Sprites)
+        if collisions:   
+            for aliens in collisions.values():
+                self.stats.score += self.settings.alien_points * len(aliens)
+            self.sb.prep_score()
+            self.sb.check_high_score()
 
         if not self.aliens:
             # destroy existing Bullets and create a new fleet
@@ -245,6 +258,7 @@ class AlienInvasion:
             for bullet in self.bullets.sprites():
                 bullet.draw_bullet()
             self.aliens.draw(self.screen)
+            self.sb.show_score()
         else:
             self.play_button.draw_button()
 
@@ -252,5 +266,5 @@ class AlienInvasion:
 
 
 if __name__ == '__main__':
-    game = AlienInvasion(screen='AOC', full_screen=True)
+    game = AlienInvasion(screen='AOC', full_screen=False)
     game.run_game()
