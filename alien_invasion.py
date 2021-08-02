@@ -115,6 +115,8 @@ class AlienInvasion:
             self.stats.reset_stats()
             self.stats.game_active = True
             self.sb.prep_score()
+            self.sb.prep_level()
+            self.sb.prep_ships()
 
             # get rid of any remaining Aliens and Bullets
             self.aliens.empty()
@@ -189,7 +191,7 @@ class AlienInvasion:
     def _check_bullet_alien_collisions(self):
         """Respond to Bullet-Alien collisions."""
         # upon collision, get rid of the Bullet and the Alien
-        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, False, True)
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
 
         # each key (single Bullet Sprite) is associated with a value (LIST of Alien Sprites)
         if collisions:   
@@ -204,11 +206,16 @@ class AlienInvasion:
             self._create_fleet()
             self.settings.increase_speed()
 
+            # increase level
+            self.stats.level += 1
+            self.sb.prep_level()
+
     def _ship_hit(self):
         """Respond to the Ship being hit by an Alien."""
         if self.stats.ships_left > 0:
             # decrement ships_left
             self.stats.ships_left -= 1
+            self.sb.prep_ships()
 
             # get rid of any remaining Aliens and Bullets
             self.aliens.empty()
@@ -266,5 +273,5 @@ class AlienInvasion:
 
 
 if __name__ == '__main__':
-    game = AlienInvasion(screen='AOC', full_screen=False)
+    game = AlienInvasion(screen='AOC', full_screen=True)
     game.run_game()
